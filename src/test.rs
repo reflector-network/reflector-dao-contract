@@ -1,7 +1,11 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{testutils::{Address as _, Ledger, LedgerInfo}, token::StellarAssetClient, vec, Env, String};
+use soroban_sdk::{
+    testutils::{storage::Persistent, Address as _, Ledger, LedgerInfo},
+    token::StellarAssetClient,
+    vec, Env, String,
+};
 
 fn init_contract_with_admin<'a>() -> (Env, DAOContractClient<'a>, ContractConfig) {
     let env = Env::default();
@@ -9,19 +13,33 @@ fn init_contract_with_admin<'a>() -> (Env, DAOContractClient<'a>, ContractConfig
     let admin = Address::generate(&env);
 
     let contract_id = env.register_contract(None, DAOContract);
-    let client: DAOContractClient<'a> =
-    DAOContractClient::new(&env, &contract_id);
+    let client: DAOContractClient<'a> = DAOContractClient::new(&env, &contract_id);
 
     let token = env.register_stellar_asset_contract(admin.clone());
 
     env.mock_all_auths();
 
-    StellarAssetClient::new(&env, &token).mint(&admin, &10000000000);
+    // extend ttl for the contract and token
+    env.as_contract(&contract_id, || {
+        env.storage()
+            .instance()
+            .extend_ttl(1_000_000, 1_000_000);
+    });
+
+    env.as_contract(&token, || {
+        env.storage()
+            .instance()
+            .extend_ttl(1_000_000, 1_000_000);
+    });
+
+    let amount = 10_000_000_000_0000000;
+
+    StellarAssetClient::new(&env, &token).mint(&admin, &amount);
 
     let init_data = ContractConfig {
         admin: admin.clone(),
         token,
-        amount: 10000000000,
+        amount: amount,
     };
 
     //set admin
@@ -34,16 +52,15 @@ fn init_contract_with_admin<'a>() -> (Env, DAOContractClient<'a>, ContractConfig
 fn test() {
     let (env, client, config) = init_contract_with_admin();
 
-    
     let owner = Address::generate(&env);
 
     let token_client = StellarAssetClient::new(&env, &config.token);
-    token_client.mint(&owner, &200000);
+    token_client.mint(&owner, &200_000_0000000);
 
     env.as_contract(&client.address, || {
-            let balance = env.get_dao_balance();
-            assert_eq!(balance, 10000000000);
-        });
+        let balance = env.get_dao_balance();
+        assert_eq!(balance, 10_000_000_000_0000000);
+    });
 
     let ballot_id = client.create_ballot(&BallotInitParams {
         category: BallotCategory::AddAsset,
@@ -54,7 +71,7 @@ fn test() {
 
     env.as_contract(&client.address, || {
         let balance = env.get_dao_balance();
-        assert_eq!(balance, 10000005000);
+        assert_eq!(balance, 10_000_005_000_0000000);
     });
 
     client.vote(&ballot_id, &true);
@@ -69,9 +86,16 @@ fn test() {
         initiator: owner.clone(),
     });
 
+    env.as_contract(&client.address, || {
+        let entry_ttl = env.storage().persistent().get_ttl(&ballot_id);
+        assert_eq!(entry_ttl, BALLOT_RENTAL_PERIOD);
+    });
+
     let ledger_info = env.ledger().get();
+    let ledger_sequence: u32 = 17280 * 14;
     env.ledger().set(LedgerInfo {
         timestamp: (UNLOCK_PERIOD * 2) as u64,
+        sequence_number: ledger_sequence,
         ..ledger_info
     });
 
@@ -79,7 +103,7 @@ fn test() {
 
     env.as_contract(&client.address, || {
         let balance = env.get_dao_balance();
-        assert_eq!(balance, 10000005000 - 6250);//6250 is the deposit + 25% for draft status
+        assert_eq!(balance, 10_000_005_000_0000000 - 6_250_0000000); //6250 is the deposit + 25% for draft status
     });
 
     let ballot_id = client.create_ballot(&BallotInitParams {
@@ -89,13 +113,18 @@ fn test() {
         initiator: owner.clone(),
     });
 
+    env.as_contract(&client.address, || {
+        let entry_ttl = env.storage().persistent().get_ttl(&ballot_id);
+        assert_eq!(entry_ttl, ledger_sequence + BALLOT_RENTAL_PERIOD);
+    });
+
     client.vote(&ballot_id, &false);
 
     client.retract_ballot(&ballot_id);
 
     env.as_contract(&client.address, || {
         let balance = env.get_dao_balance();
-        assert_eq!(balance, 10000002500 - 3750);//3750 is 75% the deposit
+        assert_eq!(balance, 10_000_002_500_0000000 - 3_750_0000000); //3750 is 75% the deposit
     });
 
     let developer = Address::generate(&env);

@@ -21,6 +21,9 @@ const UNLOCK_PERIOD: u32 = 604800;
 // 2 weeks
 const BALLOT_DURATION: u32 = 604800 * 2;
 
+// 2 months
+const BALLOT_RENTAL_PERIOD: u32 = 17280 * 30 * 2;
+
 #[contract]
 pub struct DAOContract;
 
@@ -175,7 +178,9 @@ impl DAOContract {
             BallotCategory::AddAsset => 5_000_0000000,
             BallotCategory::General => 10_000_0000000
         };
-        // TODO: validate input length for title (min 10 max 40) and description (min 10 max 160)
+        if params.title.len() < 10 || params.title.len() > 40 || params.description.len() < 10 || params.description.len() > 160 {
+            e.panic_with_error(Error::InvalidBallotParams);
+        }
         // create a ballot object
         let ballot = Ballot {
             initiator: params.initiator,
@@ -192,7 +197,8 @@ impl DAOContract {
         update_dao_balance(&e, &deposit);
         // save ballot
         e.set_ballot(ballot_id, &ballot);
-        // TODO: pay persistent storage rental for 2 months ahead
+        // extend ballot TTL
+        e.extend_ballot_ttl(ballot_id, e.ledger().sequence() + BALLOT_RENTAL_PERIOD);
         // update ID counter
         e.set_last_ballot_id(ballot_id);
         // return created ballot ID
