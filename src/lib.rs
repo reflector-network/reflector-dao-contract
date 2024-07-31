@@ -53,7 +53,7 @@ impl DAOContract {
         e.set_last_unlock(e.ledger().timestamp());
         e.set_last_ballot_id(0);
         // transfer tokens to the DAO contract
-        &token(&e).transfer(&config.admin, &e.current_contract_address(), &config.amount);
+        token(&e).transfer(&config.admin, &e.current_contract_address(), &config.amount);
         // set initial DAO balance
         update_dao_balance(&e, &config.amount.into());
     }
@@ -147,7 +147,7 @@ impl DAOContract {
             e.panic_with_error(Error::InvalidAmount);
         }
         // transfer tokens to the destination address
-        &token(&e).transfer(&e.current_contract_address(), &to, &amount);
+        token(&e).transfer(&e.current_contract_address(), &to, &amount);
     }
 
     /// Create a new ballot
@@ -187,7 +187,7 @@ impl DAOContract {
             created: e.ledger().timestamp(),
         };
         // transfer deposit to DAO fund
-        &token(&e).transfer(&ballot.initiator, &e.current_contract_address(), &deposit);
+        token(&e).transfer(&ballot.initiator, &e.current_contract_address(), &deposit);
         // update internal DAO balance
         update_dao_balance(&e, &deposit);
         // save ballot
@@ -248,7 +248,7 @@ impl DAOContract {
             _ => e.panic_with_error(Error::RefundUnavailable),
         };
         // refund tokens to the initiator address
-        &token(&e).transfer(&e.current_contract_address(), &ballot.initiator, &refunded);
+        token(&e).transfer(&e.current_contract_address(), &ballot.initiator, &refunded);
         // update remaining DAO balance
         update_dao_balance(&e, &(-refunded));
         // update ballot status
@@ -287,7 +287,7 @@ impl DAOContract {
             _ => e.panic_with_error(Error::BallotClosed),
         };
         // burn tokens from the deposit according to the decision
-        &token(&e).burn(&e.current_contract_address(), &burn_amount);
+        token(&e).burn(&e.current_contract_address(), &burn_amount);
         // update current DAO balance
         update_dao_balance(&e, &(-burn_amount));
         // update ballot status
