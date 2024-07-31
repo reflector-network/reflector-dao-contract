@@ -151,6 +151,9 @@ impl DAOContract {
         }
         // transfer tokens to the destination address
         token(&e).transfer(&e.current_contract_address(), &to, &amount);
+
+        // update available balance
+        update_available_balance(&e, &claimant, &(-amount));
     }
 
     /// Create a new ballot

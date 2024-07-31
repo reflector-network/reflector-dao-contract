@@ -140,4 +140,14 @@ fn test() {
         let balance = env.get_available_balance(&operators.first().unwrap());
         assert!(balance > 0);
     });
+
+    let available = client.available(&developer);
+    assert!(available > 0);
+
+    client.claim(&developer, &developer, &available);
+
+    env.as_contract(&client.address, || {
+        let balance = env.get_available_balance(&developer);
+        assert_eq!(balance, 0);
+    });
 }
