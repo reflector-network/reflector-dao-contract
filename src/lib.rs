@@ -1,9 +1,9 @@
 #![no_std]
 use extensions::env_extensions::EnvExtensions;
-use soroban_sdk::{contract, contractimpl, token::TokenClient, Address, Env, Vec};
+use soroban_sdk::{contract, contractimpl, token::TokenClient, Address, Env, Map, Vec};
 use types::{
-    ballot::Ballot, ballot_init_params::BallotInitParams, ballot_status::BallotStatus,
-    ballot_category::BallotCategory, contract_config::ContractConfig, error::Error,
+    ballot::Ballot, ballot_category::BallotCategory, ballot_init_params::BallotInitParams,
+    ballot_status::BallotStatus, contract_config::ContractConfig, error::Error,
 };
 
 mod extensions;
@@ -39,6 +39,8 @@ impl DAOContract {
     /// # Panics
     ///
     /// Panics if the contract has been already initialized
+    /// Panics if the deposit amounts is invalid
+    /// Panics if the deposit amount is not set for all categories
     pub fn config(e: Env, config: ContractConfig) {
         // check admin permissions
         config.admin.require_auth();
@@ -54,11 +56,29 @@ impl DAOContract {
         e.set_admin(&config.admin);
         e.set_token(&config.token);
         e.set_last_unlock(e.ledger().timestamp());
-        e.set_last_ballot_id(0);
+        //set deposit params
+        set_deposit(&e, config.deposit_params);
         // transfer tokens to the DAO contract
         token(&e).transfer(&config.admin, &e.current_contract_address(), &config.amount);
         // set initial DAO balance
         update_dao_balance(&e, &config.amount.into());
+    }
+
+    /// Sets the deposit amount for each ballot category
+    /// Requires admin permissions
+    /// 
+    /// # Arguments
+    /// 
+    /// * `deposit_params` - Map of deposit amounts for each ballot category
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if the caller doesn't match admin address
+    /// Panics if the deposit amount is invalid
+    /// Panics if the deposit amount is not set for all categories
+    pub fn set_deposit(e: Env, deposit_params: Map<BallotCategory, i128>) {
+        e.panic_if_not_admin();
+        set_deposit(&e, deposit_params);
     }
 
     /// Unlocks tokens distributed to the developer organization and operators on a weekly basis
@@ -174,14 +194,12 @@ impl DAOContract {
         // generate new ballot id
         let ballot_id = e.get_last_ballot_id() + 1;
         // calculate deposit requirements for the ballot
-        // TODO: do we want to adjust deposit amounts per category in the future?
-        let deposit = match params.category {
-            BallotCategory::AddNode => 50_000_0000000,
-            BallotCategory::AddPriceFeed => 100_000_0000000,
-            BallotCategory::AddAsset => 5_000_0000000,
-            BallotCategory::General => 10_000_0000000
-        };
-        if params.title.len() < 10 || params.title.len() > 40 || params.description.len() < 10 || params.description.len() > 160 {
+        let deposit = e.get_deposit(params.category);
+        if params.title.len() < 10
+            || params.title.len() > 40
+            || params.description.len() < 10
+            || params.description.len() > 160
+        {
             e.panic_with_error(Error::InvalidBallotParams);
         }
         // create a ballot object
@@ -253,7 +271,7 @@ impl DAOContract {
                     e.panic_with_error(Error::RefundUnavailable);
                 }
                 (ballot.deposit * 125) / 100
-            },
+            }
             _ => e.panic_with_error(Error::RefundUnavailable),
         };
         // refund tokens to the initiator address
@@ -288,7 +306,11 @@ impl DAOContract {
             e.panic_with_error(Error::BallotClosed);
         }
         // resolve new status
-        let new_status = if accepted { BallotStatus::Accepted } else { BallotStatus::Rejected };
+        let new_status = if accepted {
+            BallotStatus::Accepted
+        } else {
+            BallotStatus::Rejected
+        };
         // calculate the amount of DAO tokens to burn
         let burn_amount = match new_status {
             BallotStatus::Rejected => (ballot.deposit * 25) / 100,
@@ -302,6 +324,16 @@ impl DAOContract {
         // update ballot status
         ballot.status = new_status;
         e.set_ballot(ballot_id, &ballot);
+    }
+}
+
+fn set_deposit(e: &Env, deposit_params: Map<BallotCategory, i128>) {
+    for category in BallotCategory::iterator() {
+        let amount = deposit_params.get(category).unwrap_or(0);
+        if amount <= 0 {
+            e.panic_with_error(Error::InvalidAmount);
+        }
+        e.set_deposit(category, amount);
     }
 }
 

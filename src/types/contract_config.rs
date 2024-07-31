@@ -1,4 +1,6 @@
-use soroban_sdk::{contracttype, Address};
+use soroban_sdk::{contracttype, Address, Map};
+
+use super::ballot_category::BallotCategory;
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -11,4 +13,6 @@ pub struct ContractConfig {
     pub token: Address,
     /// Initial funding amount
     pub amount: i128,
+    /// Initial deposit amounts for each ballot category
+    pub deposit_params: Map<BallotCategory, i128>
 }

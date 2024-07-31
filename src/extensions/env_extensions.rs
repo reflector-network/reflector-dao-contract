@@ -4,7 +4,7 @@ use soroban_sdk::{panic_with_error, Address, Env};
 
 use crate::types;
 
-use types::{error::Error, ballot::Ballot};
+use types::{error::Error, ballot::Ballot, ballot_category::BallotCategory};
 const ADMIN_KEY: &str = "admin";
 const LAST_BALLOT_ID: &str = "last_ballot_id";
 const LAST_UNLOCK: &str = "last_unlock";
@@ -31,6 +31,10 @@ pub trait EnvExtensions {
     fn get_ballot(&self, ballot_id: u64) -> Option<Ballot>;
 
     fn set_ballot(&self, ballot_id: u64, ballot: &Ballot);
+
+    fn set_deposit(&self, ballot_category: BallotCategory, amount: i128);
+
+    fn get_deposit(&self, ballot_category: BallotCategory) -> i128;
 
     fn get_dao_balance(&self) -> i128;
 
@@ -100,6 +104,14 @@ impl EnvExtensions for Env {
 
     fn set_ballot(&self, ballot_id: u64, ballot: &Ballot) {
         get_persistent_storage(&self).set(&ballot_id, ballot);
+    }
+
+    fn set_deposit(&self, ballot_category: BallotCategory, amount: i128) {
+        get_instance_storage(&self).set(&ballot_category, &amount);
+    }
+
+    fn get_deposit(&self, ballot_category: BallotCategory) -> i128 {
+        get_instance_storage(&self).get(&ballot_category).unwrap()
     }
 
     fn get_last_unlock(&self) -> u64 {

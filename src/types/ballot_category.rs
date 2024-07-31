@@ -9,3 +9,16 @@ pub enum BallotCategory {
     AddAsset = 2,
     General = 3
 }
+
+impl BallotCategory {
+    pub fn iterator() -> impl Iterator<Item = BallotCategory> {
+        [
+            BallotCategory::AddNode,
+            BallotCategory::AddPriceFeed,
+            BallotCategory::AddAsset,
+            BallotCategory::General,
+        ]
+        .iter()
+        .copied()
+    }
+}

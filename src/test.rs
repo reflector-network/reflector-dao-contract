@@ -40,6 +40,12 @@ fn init_contract_with_admin<'a>() -> (Env, DAOContractClient<'a>, ContractConfig
         admin: admin.clone(),
         token,
         amount: amount,
+        deposit_params: Map::from_array(&env, [
+            (BallotCategory::AddNode, 50_000_0000000),
+            (BallotCategory::AddPriceFeed, 100_000_0000000),
+            (BallotCategory::AddAsset, 5_000_0000000),
+            (BallotCategory::General, 10_000_0000000),
+        ])
     };
 
     //set admin
