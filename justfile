@@ -6,14 +6,14 @@ wasm2wat := "wasm2wat"
 wat2wasm := "wat2wasm"
 
 wat: build
-    {{wasm2wat}} target/wasm32-unknown-unknown/release/reflector_subscriptions.wasm --generate-names -o foo.wat
+    {{wasm2wat}} target/wasm32-unknown-unknown/release/reflector_dao_contract.wasm --generate-names -o foo.wat
     {{wat2wasm}} foo.wat --debug-names -o bar.wasm
-    {{wasm2wat}} bar.wasm -o reflector_subscriptions.wat
+    {{wasm2wat}} bar.wasm -o reflector_dao_contract.wat
     rm foo.wat bar.wasm
 
 build-llvm:
     env RUSTFLAGS="--emit=llvm-ir" cargo build --target=wasm32-unknown-unknown --release
-    @echo "See target/wasm32-unknown-unknown/release/deps/reflector_subscriptions.wasm.ll"
+    @echo "See target/wasm32-unknown-unknown/release/deps/reflector_dao_contract.wasm.ll"
 
 clean:
     cargo clean
