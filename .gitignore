@@ -6,3 +6,7 @@ target
 .soroban
 
 /test_snapshots/test/test.1.json
+
+emv-*
+.certora_internal
+*.wat
