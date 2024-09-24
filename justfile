@@ -22,9 +22,10 @@ update:
     cargo update -p nondet
 
 trapAsAssert := "false"
-config_loop_iter := 4
 
+config_loop_iter := "4"
 check_config_sanity: wat
     certoraRun.py reflector_dao_contract.wat --loop_iter {{config_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_config_sanity"
 check_config_can_only_be_called_once: wat
     certoraRun.py reflector_dao_contract.wat --loop_iter {{config_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_config_can_only_be_called_once"
+
