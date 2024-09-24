@@ -5,7 +5,6 @@ use types::{
     ballot::Ballot, ballot_category::BallotCategory, ballot_init_params::BallotInitParams,
     ballot_status::BallotStatus, contract_config::ContractConfig, error::Error,
 };
-use nondet::Nondet;
 
 mod extensions;
 mod types;
@@ -58,8 +57,7 @@ impl DAOContract {
         e.set_token(&config.token);
         e.set_last_unlock(e.ledger().timestamp());
         //set deposit params
-        
-        (&e, config.deposit_params);
+        set_deposit(&e, config.deposit_params);
         // transfer tokens to the DAO contract
         token(&e).transfer(&config.admin, &e.current_contract_address(), &config.amount);
         // set initial DAO balance
@@ -372,14 +370,17 @@ fn update_dao_balance(e: &Env, amount: &i128) {
     e.set_dao_balance(dao_balance + amount);
 }
 
+#[no_mangle]
+pub fn certora_config_sanity(env: Env, config: ContractConfig) {
+    DAOContract::config(env, config);
+    cvt::assert!(false);
+}
 
-
-#[export_name = "certora_config_can_only_be_called_once"]
-pub extern "C" fn certora_config_can_only_be_called_once() {
-    DAOContract::config(Env::default(), ContractConfig::nondet());
+#[no_mangle]
+pub fn certora_config_can_only_be_called_once(env: Env, config: ContractConfig) {
+    DAOContract::config(env.clone(), config.clone());
     // Second call should fail
-    // Note: this should really be in a separate transaction.  However, we don't support that yet.
-    DAOContract::config(Env::default(), ContractConfig::nondet());
+    DAOContract::config(env.clone(), config.clone());
     // Check that the second call failed (i.e., we should not reach this point).
     cvt::assert!(false);
 }

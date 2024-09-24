@@ -5,8 +5,6 @@ build:
 wasm2wat := "wasm2wat"
 wat2wasm := "wat2wasm"
 
-trapAsAssert := "false"
-
 wat: build
     {{wasm2wat}} target/wasm32-unknown-unknown/release/reflector_dao_contract.wasm --generate-names -o foo.wat
     {{wat2wasm}} foo.wat --debug-names -o bar.wasm
@@ -23,5 +21,10 @@ clean:
 update:
     cargo update -p nondet
 
+trapAsAssert := "false"
+config_loop_iter := 4
+
+check_config_sanity: wat
+    certoraRun.py reflector_dao_contract.wat --loop_iter {{config_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_config_sanity"
 check_config_can_only_be_called_once: wat
-    certoraRun.py reflector_dao_contract.wat --loop_iter 4 --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_config_can_only_be_called_once"
+    certoraRun.py reflector_dao_contract.wat --loop_iter {{config_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_config_can_only_be_called_once"

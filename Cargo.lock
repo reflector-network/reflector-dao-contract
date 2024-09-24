@@ -646,16 +646,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nondet"
-version = "0.2.0"
-source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#550a4a78ac9dd2eaa120b3de9344a8778ec0f580"
-dependencies = [
- "cvt",
- "soroban-sdk",
- "stubs",
-]
-
-[[package]]
 name = "num-bigint"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -829,7 +819,6 @@ name = "reflector-dao-contract"
 version = "0.2.0"
 dependencies = [
  "cvt",
- "nondet",
  "soroban-sdk",
 ]
 
