@@ -55,7 +55,7 @@ impl DAOContract {
         // save the configuration
         e.set_admin(&config.admin);
         e.set_token(&config.token);
-        e.set_last_unlock(e.ledger().timestamp());
+        e.set_last_unlock(config.start_date);
         //set deposit params
         set_deposit(&e, config.deposit_params);
         // transfer tokens to the DAO contract

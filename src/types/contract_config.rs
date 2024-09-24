@@ -14,5 +14,7 @@ pub struct ContractConfig {
     /// Initial funding amount
     pub amount: i128,
     /// Initial deposit amounts for each ballot category
-    pub deposit_params: Map<BallotCategory, i128>
+    pub deposit_params: Map<BallotCategory, i128>,
+    /// DAO start date
+    pub start_date: u64
 }

@@ -45,7 +45,8 @@ fn init_contract_with_admin<'a>() -> (Env, DAOContractClient<'a>, ContractConfig
             (BallotCategory::AddPriceFeed, 100_000_0000000),
             (BallotCategory::AddAsset, 5_000_0000000),
             (BallotCategory::General, 10_000_0000000),
-        ])
+        ]),
+        start_date: 0,
     };
 
     //set admin
@@ -146,6 +147,19 @@ fn test() {
         let balance = env.get_available_balance(&operators.first().unwrap());
         assert!(balance > 0);
     });
+
+    env.as_contract(&client.address, || {
+        let last_unlock = env.get_last_unlock();
+        assert_eq!(last_unlock, UNLOCK_PERIOD as u64);
+    });    
+
+    //unlock again
+    client.unlock(&developer, &operators);
+
+    env.as_contract(&client.address, || {
+        let last_unlock = env.get_last_unlock();
+        assert_eq!(last_unlock, (UNLOCK_PERIOD * 2) as u64);
+    }); 
 
     let available = client.available(&developer);
     assert!(available > 0);
