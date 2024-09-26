@@ -29,3 +29,8 @@ check_config_sanity: wat
 check_config_can_only_be_called_once: wat
     certoraRun.py reflector_dao_contract.wat --loop_iter {{config_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_config_can_only_be_called_once"
 
+create_ballot_loop_iter := "3"
+check_create_ballot_sanity: wat
+    certoraRun.py reflector_dao_contract.wat --loop_iter {{create_ballot_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_create_ballot_sanity"
+check_create_ballot_must_be_initiator: wat
+    certoraRun.py reflector_dao_contract.wat --loop_iter {{create_ballot_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_create_ballot_must_be_initiator"

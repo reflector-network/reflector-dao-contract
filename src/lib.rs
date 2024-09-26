@@ -385,4 +385,27 @@ pub fn certora_config_can_only_be_called_once(env: Env, config: ContractConfig) 
     cvt::assert!(false);
 }
 
+extern "C" {
+    fn CVT_SOROBAN_is_auth(address: u64) -> u64;
+}
+
+fn is_auth(address: Address) -> bool {
+    unsafe { CVT_SOROBAN_is_auth(address.to_val().get_payload()) != 0 }
+}
+
+#[no_mangle]
+pub fn certora_create_ballot_sanity(env: Env, params: BallotInitParams) {
+    cvt::require!(is_auth(params.initiator.clone()), "Initiator is authorized");
+    DAOContract::create_ballot(env, params);
+    cvt::assert!(false);
+}
+
+#[no_mangle]
+pub fn certora_create_ballot_must_be_initiator(env: Env, params: BallotInitParams) {    
+    cvt::require!(!is_auth(params.initiator.clone()), "Initiator is not authorized");
+    DAOContract::create_ballot(env, params);
+    // create_ballot should have failed because the initiator is not authorized
+    cvt::assert!(false);
+}
+
 mod test;
