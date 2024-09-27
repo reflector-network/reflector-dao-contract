@@ -42,3 +42,9 @@ check_retract_ballot_must_be_initiator: wat
     certoraRun.py reflector_dao_contract.wat --loop_iter {{retract_ballot_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_retract_ballot_must_be_initiator"
 check_retract_ballot_can_only_be_called_once: wat
     certoraRun.py reflector_dao_contract.wat --loop_iter {{retract_ballot_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_retract_ballot_can_only_be_called_once"
+
+vote_loop_iter := "4"
+check_vote_sanity: wat
+    certoraRun.py reflector_dao_contract.wat --loop_iter {{vote_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_vote_sanity"
+check_cannot_vote_on_retracted_ballot: wat
+    certoraRun.py reflector_dao_contract.wat --loop_iter {{vote_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_cannot_vote_on_retracted_ballot"

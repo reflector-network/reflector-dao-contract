@@ -321,12 +321,15 @@ impl DAOContract {
             _ => e.panic_with_error(Error::BallotClosed),
         };
         // burn tokens from the deposit according to the decision
-        token(&e).burn(&e.current_contract_address(), &burn_amount);
+        token(&e).burn(&e.current_contract_address(), &burn_amount);        
+
+        /* MUNGED away for perf, for now:
         // update current DAO balance
         update_dao_balance(&e, &(-burn_amount));
         // update ballot status
         ballot.status = new_status;
         e.set_ballot(ballot_id, &ballot);
+        */
     }
 }
 
@@ -432,11 +435,24 @@ pub fn certora_retract_ballot_must_be_initiator(env: Env, ballot_id: u64) {
 
 #[no_mangle]
 pub fn certora_retract_ballot_can_only_be_called_once(env: Env, ballot_id: u64) {
-    let ballot = DAOContract::get_ballot(env.clone(), ballot_id);
     DAOContract::retract_ballot(env.clone(), ballot_id);
     DAOContract::retract_ballot(env.clone(), ballot_id);
     cvt::assert!(false);
 }
+
+#[no_mangle]
+pub fn certora_vote_sanity(env: Env, ballot_id: u64, accepted: bool) {
+    DAOContract::vote(env, ballot_id, accepted);
+    cvt::assert!(false);
+}
+
+#[no_mangle]
+pub fn certora_cannot_vote_on_retracted_ballot(env: Env, ballot_id: u64, accepted: bool) {
+    DAOContract::retract_ballot(env.clone(), ballot_id);
+    DAOContract::vote(env, ballot_id, accepted);
+    cvt::assert!(false);
+}
+
 
 
 mod test;
