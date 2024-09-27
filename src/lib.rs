@@ -373,6 +373,18 @@ fn update_dao_balance(e: &Env, amount: &i128) {
     e.set_dao_balance(dao_balance + amount);
 }
 
+
+extern "C" {
+    fn CVT_SOROBAN_is_auth(address: u64) -> u64;
+}
+
+fn is_auth(address: Address) -> bool {
+    unsafe { CVT_SOROBAN_is_auth(address.to_val().get_payload()) != 0 }
+}
+
+
+
+
 #[no_mangle]
 pub fn certora_config_sanity(env: Env, config: ContractConfig) {
     DAOContract::config(env, config);
@@ -386,14 +398,6 @@ pub fn certora_config_can_only_be_called_once(env: Env, config: ContractConfig) 
     DAOContract::config(env.clone(), config.clone());
     // Check that the second call failed (i.e., we should not reach this point).
     cvt::assert!(false);
-}
-
-extern "C" {
-    fn CVT_SOROBAN_is_auth(address: u64) -> u64;
-}
-
-fn is_auth(address: Address) -> bool {
-    unsafe { CVT_SOROBAN_is_auth(address.to_val().get_payload()) != 0 }
 }
 
 #[no_mangle]
@@ -414,7 +418,6 @@ pub fn certora_create_ballot_must_be_initiator(env: Env, params: BallotInitParam
 #[no_mangle]
 pub fn certora_retract_ballot_sanity(env: Env, ballot_id: u64) {
     let ballot = DAOContract::get_ballot(env.clone(), ballot_id);
-    cvt::require!(is_auth(ballot.initiator), "Initiator is authorized");
     DAOContract::retract_ballot(env, ballot_id);
     cvt::assert!(false);
 }
@@ -426,5 +429,14 @@ pub fn certora_retract_ballot_must_be_initiator(env: Env, ballot_id: u64) {
     DAOContract::retract_ballot(env, ballot_id);
     cvt::assert!(false);
 }
+
+#[no_mangle]
+pub fn certora_retract_ballot_can_only_be_called_once(env: Env, ballot_id: u64) {
+    let ballot = DAOContract::get_ballot(env.clone(), ballot_id);
+    DAOContract::retract_ballot(env.clone(), ballot_id);
+    DAOContract::retract_ballot(env.clone(), ballot_id);
+    cvt::assert!(false);
+}
+
 
 mod test;
