@@ -34,3 +34,9 @@ check_create_ballot_sanity: wat
     certoraRun.py reflector_dao_contract.wat --loop_iter {{create_ballot_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_create_ballot_sanity"
 check_create_ballot_must_be_initiator: wat
     certoraRun.py reflector_dao_contract.wat --loop_iter {{create_ballot_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_create_ballot_must_be_initiator"
+
+retract_ballot_loop_iter := "4"
+check_retract_ballot_sanity: wat
+    certoraRun.py reflector_dao_contract.wat --loop_iter {{retract_ballot_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_retract_ballot_sanity"
+check_retract_ballot_must_be_initiator: wat
+    certoraRun.py reflector_dao_contract.wat --loop_iter {{retract_ballot_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_retract_ballot_must_be_initiator"
