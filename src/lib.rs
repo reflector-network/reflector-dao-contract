@@ -453,6 +453,18 @@ pub fn certora_cannot_vote_on_retracted_ballot(env: Env, ballot_id: u64, accepte
     cvt::assert!(false);
 }
 
+#[no_mangle]
+pub fn certora_set_deposit_sanity(env: Env, config: ContractConfig, deposit_params: Map<BallotCategory, i128>) {
+    cvt::require!(is_auth(env.get_admin().unwrap()), "Admin is authorized");
+    DAOContract::set_deposit(env, deposit_params);
+    cvt::assert!(false);
+}
 
+#[no_mangle]
+pub fn certora_set_deposit_must_be_admin(env: Env, deposit_params: Map<BallotCategory, i128>) {
+    cvt::require!(!is_auth(env.get_admin().unwrap()), "Admin is not authorized");
+    DAOContract::set_deposit(env, deposit_params);
+    cvt::assert!(false);
+}
 
 mod test;

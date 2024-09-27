@@ -48,3 +48,9 @@ check_vote_sanity: wat
     certoraRun.py reflector_dao_contract.wat --loop_iter {{vote_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_vote_sanity"
 check_cannot_vote_on_retracted_ballot: wat
     certoraRun.py reflector_dao_contract.wat --loop_iter {{vote_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_cannot_vote_on_retracted_ballot"
+
+set_deposit_loop_iter := "4"
+check_set_deposit_sanity: wat
+    certoraRun.py reflector_dao_contract.wat --loop_iter {{set_deposit_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_set_deposit_sanity"
+check_set_deposit_must_be_admin: wat
+    certoraRun.py reflector_dao_contract.wat --loop_iter {{set_deposit_loop_iter}} --prover_args "-trapAsAssert {{trapAsAssert}} -target certora_set_deposit_must_be_admin"
