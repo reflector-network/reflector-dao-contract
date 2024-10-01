@@ -9,6 +9,7 @@ use nondet::*;
 
 mod extensions;
 mod types;
+mod certora;
 
 // 0.24% weekly distribution
 const OPERATORS_SHARE: i128 = 24;
