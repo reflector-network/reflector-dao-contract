@@ -242,9 +242,17 @@ dependencies = [
 [[package]]
 name = "cvt"
 version = "0.1.0"
-source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#550a4a78ac9dd2eaa120b3de9344a8778ec0f580"
+source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#dd6adb883c1a7cc8e04a5a1f2df7044d40a97871"
 dependencies = [
  "stubs",
+]
+
+[[package]]
+name = "cvt-soroban"
+version = "0.1.0"
+source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#dd6adb883c1a7cc8e04a5a1f2df7044d40a97871"
+dependencies = [
+ "soroban-sdk",
 ]
 
 [[package]]
@@ -648,7 +656,7 @@ dependencies = [
 [[package]]
 name = "nondet"
 version = "0.2.0"
-source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#550a4a78ac9dd2eaa120b3de9344a8778ec0f580"
+source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#dd6adb883c1a7cc8e04a5a1f2df7044d40a97871"
 dependencies = [
  "cvt",
  "soroban-sdk",
@@ -829,6 +837,7 @@ name = "reflector-dao-contract"
 version = "0.2.0"
 dependencies = [
  "cvt",
+ "cvt-soroban",
  "nondet",
  "soroban-sdk",
 ]
@@ -1222,7 +1231,7 @@ checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 [[package]]
 name = "stubs"
 version = "0.1.0"
-source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#550a4a78ac9dd2eaa120b3de9344a8778ec0f580"
+source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#dd6adb883c1a7cc8e04a5a1f2df7044d40a97871"
 
 [[package]]
 name = "subtle"

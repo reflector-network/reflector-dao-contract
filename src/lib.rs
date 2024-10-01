@@ -6,11 +6,11 @@ use types::{
     ballot_status::BallotStatus, contract_config::ContractConfig, error::Error,
 };
 use nondet::*;
+use cvt::{require, assert};
+use cvt_soroban::{is_auth};
 
 mod extensions;
 mod types;
-
-fn i128_nondet() -> i128 { u128::nondet() as i128 }
 
 // 0.24% weekly distribution
 const OPERATORS_SHARE: i128 = 24;
@@ -113,7 +113,7 @@ impl DAOContract {
         // calculate unlocked amount that goes to operators
         let operators_unlocked = calc_percentage(dao_balance, OPERATORS_SHARE);
         // the amount a single operator would get
-        let unlock_per_operator = &i128_nondet();//&(operators_unlocked / operators.len() as i128);
+        let unlock_per_operator = &i128::nondet();//MUNGED &(operators_unlocked / operators.len() as i128);
         // update available balances for every operator
         for operator in operators.iter() {
             // increase outstanding available balance
@@ -266,14 +266,14 @@ impl DAOContract {
         // calculate the refund amount based on the ballot status
         let refunded = match ballot.status {
             // if the proposal has been rejected by the DAO, the initiator receives 75% refund
-            BallotStatus::Rejected => i128_nondet(),//(ballot.deposit * 75) / 100,
+            BallotStatus::Rejected => i128::nondet(),//MUNGED (ballot.deposit * 75) / 100,
             // if the DAO members haven't voted in a timely manner, the initiator receives extra 25% of the deposit
             BallotStatus::Draft => {
                 // draft ballots can be retracted only after the voting period is over
                 if e.ledger().timestamp() - ballot.created < BALLOT_DURATION as u64 {
                     e.panic_with_error(Error::RefundUnavailable);
                 }
-                i128_nondet()//(ballot.deposit * 125) / 100
+                i128::nondet()//MUNGED (ballot.deposit * 125) / 100
             }
             _ => e.panic_with_error(Error::RefundUnavailable),
         };
@@ -316,7 +316,7 @@ impl DAOContract {
         };
         // calculate the amount of DAO tokens to burn
         let burn_amount = match new_status {
-            BallotStatus::Rejected => i128_nondet(),//(ballot.deposit * 25) / 100,
+            BallotStatus::Rejected => i128::nondet(),//MUNGED (ballot.deposit * 25) / 100,
             BallotStatus::Accepted => ballot.deposit,
             _ => e.panic_with_error(Error::BallotClosed),
         };
@@ -361,7 +361,7 @@ fn token(e: &Env) -> TokenClient {
 
 // calculate percentage from a given amount
 fn calc_percentage(value: i128, percentage: i128) -> i128 {
-    i128_nondet()//(value * percentage) / 10000
+    i128::nondet() //MUNGED (value * percentage) / 10000
 }
 
 // update the balance available for claiming for a particular account
@@ -376,22 +376,10 @@ fn update_dao_balance(e: &Env, amount: &i128) {
     e.set_dao_balance(dao_balance + amount);
 }
 
-
-extern "C" {
-    fn CVT_SOROBAN_is_auth(address: u64) -> u64;
-}
-
-fn is_auth(address: Address) -> bool {
-    unsafe { CVT_SOROBAN_is_auth(address.to_val().get_payload()) != 0 }
-}
-
-
-
-
 #[no_mangle]
 pub fn certora_config_sanity(env: Env, config: ContractConfig) {
     DAOContract::config(env, config);
-    cvt::assert!(false);
+    assert!(false);
 }
 
 #[no_mangle]
@@ -400,78 +388,78 @@ pub fn certora_config_can_only_be_called_once(env: Env, config: ContractConfig) 
     // Second call should fail
     DAOContract::config(env.clone(), config.clone());
     // Check that the second call failed (i.e., we should not reach this point).
-    cvt::assert!(false);
+    assert!(false);
 }
 
 #[no_mangle]
 pub fn certora_create_ballot_sanity(env: Env, params: BallotInitParams) {
-    cvt::require!(is_auth(params.initiator.clone()), "Initiator is authorized");
+    require!(is_auth(params.initiator.clone()), "Initiator is authorized");
     DAOContract::create_ballot(env, params);
-    cvt::assert!(false);
+    assert!(false);
 }
 
 #[no_mangle]
 pub fn certora_create_ballot_must_be_initiator(env: Env, params: BallotInitParams) {    
-    cvt::require!(!is_auth(params.initiator.clone()), "Initiator is not authorized");
+    require!(!is_auth(params.initiator.clone()), "Initiator is not authorized");
     DAOContract::create_ballot(env, params);
     // create_ballot should have failed because the initiator is not authorized
-    cvt::assert!(false)
+    assert!(false)
 }
 
 #[no_mangle]
 pub fn certora_ballot_id_increasing(env: Env, params: BallotInitParams) {
     let ballot_id = DAOContract::create_ballot(env.clone(), params.clone());
     let ballot_id2 = DAOContract::create_ballot(env.clone(), params.clone());
-    cvt::require!(ballot_id2 > ballot_id, "Ballot ID should be increasing");
+    require!(ballot_id2 > ballot_id, "Ballot ID should be increasing");
 }
 
 #[no_mangle]
 pub fn certora_retract_ballot_sanity(env: Env, ballot_id: u64) {
     let ballot = DAOContract::get_ballot(env.clone(), ballot_id);
     DAOContract::retract_ballot(env, ballot_id);
-    cvt::assert!(false);
+    assert!(false);
 }
 
 #[no_mangle]
 pub fn certora_retract_ballot_must_be_initiator(env: Env, ballot_id: u64) {
     let ballot = DAOContract::get_ballot(env.clone(), ballot_id);
-    cvt::require!(!is_auth(ballot.initiator), "Initiator is not authorized");
+    require!(!is_auth(ballot.initiator), "Initiator is not authorized");
     DAOContract::retract_ballot(env, ballot_id);
-    cvt::assert!(false);
+    assert!(false);
 }
 
 #[no_mangle]
 pub fn certora_retract_ballot_can_only_be_called_once(env: Env, ballot_id: u64) {
     DAOContract::retract_ballot(env.clone(), ballot_id);
     DAOContract::retract_ballot(env.clone(), ballot_id);
-    cvt::assert!(false);
+    assert!(false);
 }
 
 #[no_mangle]
 pub fn certora_vote_sanity(env: Env, ballot_id: u64, accepted: bool) {
     DAOContract::vote(env, ballot_id, accepted);
-    cvt::assert!(false);
+    assert!(false);
 }
 
 #[no_mangle]
 pub fn certora_cannot_vote_on_retracted_ballot(env: Env, ballot_id: u64, accepted: bool) {
     DAOContract::retract_ballot(env.clone(), ballot_id);
     DAOContract::vote(env, ballot_id, accepted);
-    cvt::assert!(false);
+    assert!(false);
 }
 
 #[no_mangle]
 pub fn certora_set_deposit_sanity(env: Env, config: ContractConfig, deposit_params: Map<BallotCategory, i128>) {
-    cvt::require!(is_auth(env.get_admin().unwrap()), "Admin is authorized");
+    require!(is_auth(env.get_admin().unwrap()), "Admin is authorized");
     DAOContract::set_deposit(env, deposit_params);
-    cvt::assert!(false);
+    assert!(false);
 }
 
 #[no_mangle]
 pub fn certora_set_deposit_must_be_admin(env: Env, deposit_params: Map<BallotCategory, i128>) {
-    cvt::require!(!is_auth(env.get_admin().unwrap()), "Admin is not authorized");
+    require!(!is_auth(env.get_admin().unwrap()), "Admin is not authorized");
     DAOContract::set_deposit(env, deposit_params);
-    cvt::assert!(false);
+    assert!(false);
 }
 
 mod test;
