@@ -419,6 +419,13 @@ pub fn certora_create_ballot_must_be_initiator(env: Env, params: BallotInitParam
 }
 
 #[no_mangle]
+pub fn certora_ballot_id_increasing(env: Env, params: BallotInitParams) {
+    let ballot_id = DAOContract::create_ballot(env.clone(), params.clone());
+    let ballot_id2 = DAOContract::create_ballot(env.clone(), params.clone());
+    cvt::require!(ballot_id2 > ballot_id, "Ballot ID should be increasing");
+}
+
+#[no_mangle]
 pub fn certora_retract_ballot_sanity(env: Env, ballot_id: u64) {
     let ballot = DAOContract::get_ballot(env.clone(), ballot_id);
     DAOContract::retract_ballot(env, ballot_id);
