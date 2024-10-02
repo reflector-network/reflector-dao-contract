@@ -15,9 +15,7 @@ clean:
 prove target: build
     certoraRun.py {{wasm}} --loop_iter {{loop_iter}} --prover_args "-target {{target}}"
 
-[group('check')]
 check_config_sanity: (prove "certora_config_sanity")
-[group('check')]
 check_config_can_only_be_called_once: (prove "certora_config_can_only_be_called_once")
 
 check_create_ballot_sanity: (prove "certora_create_ballot_sanity")
