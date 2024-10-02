@@ -242,9 +242,16 @@ dependencies = [
 [[package]]
 name = "cvt"
 version = "0.1.0"
+dependencies = [
+ "stubs 0.1.0",
+]
+
+[[package]]
+name = "cvt"
+version = "0.1.0"
 source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#dd6adb883c1a7cc8e04a5a1f2df7044d40a97871"
 dependencies = [
- "stubs",
+ "stubs 0.1.0 (git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban)",
 ]
 
 [[package]]
@@ -658,9 +665,9 @@ name = "nondet"
 version = "0.2.0"
 source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#dd6adb883c1a7cc8e04a5a1f2df7044d40a97871"
 dependencies = [
- "cvt",
+ "cvt 0.1.0 (git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban)",
  "soroban-sdk",
- "stubs",
+ "stubs 0.1.0 (git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban)",
 ]
 
 [[package]]
@@ -836,7 +843,7 @@ dependencies = [
 name = "reflector-dao-contract"
 version = "0.2.0"
 dependencies = [
- "cvt",
+ "cvt 0.1.0",
  "cvt-soroban",
  "nondet",
  "soroban-sdk",
@@ -1227,6 +1234,10 @@ name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
+
+[[package]]
+name = "stubs"
+version = "0.1.0"
 
 [[package]]
 name = "stubs"
