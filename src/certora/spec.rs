@@ -1,4 +1,4 @@
-use soroban_sdk::{Env, Map};
+use soroban_sdk::{Env, Map, Address, Vec};
 use crate::extensions::env_extensions::EnvExtensions;
 use crate::DAOContract;
 use crate::types::{
@@ -42,7 +42,7 @@ pub fn certora_create_ballot_must_be_initiator(env: Env, params: BallotInitParam
 pub fn certora_ballot_id_increasing(env: Env, params: BallotInitParams) {
     let ballot_id = DAOContract::create_ballot(env.clone(), params.clone());
     let ballot_id2 = DAOContract::create_ballot(env.clone(), params.clone());
-    assert!(ballot_id2 > ballot_id, "Ballot ID should be increasing");
+    assert!(ballot_id2 > ballot_id);
 }
 
 #[no_mangle]
@@ -70,8 +70,16 @@ pub fn certora_retract_ballot_can_only_be_called_once(env: Env, ballot_id: u64) 
 
 #[no_mangle]
 pub fn certora_vote_sanity(env: Env, ballot_id: u64, accepted: bool) {
+    require!(is_auth(env.get_admin().unwrap()), "authorized");
     DAOContract::vote(env, ballot_id, accepted);
     satisfy!(true);
+}
+
+#[no_mangle]
+pub fn certora_vote_must_be_admin(env: Env, ballot_id: u64, accepted: bool) {
+    require!(!is_auth(env.get_admin().unwrap()), "not authorized");
+    DAOContract::vote(env, ballot_id, accepted);
+    assert!(false);
 }
 
 #[no_mangle]
@@ -92,5 +100,19 @@ pub fn certora_set_deposit_sanity(env: Env, deposit_params: Map<BallotCategory, 
 pub fn certora_set_deposit_must_be_admin(env: Env, deposit_params: Map<BallotCategory, i128>) {
     require!(!is_auth(env.get_admin().unwrap()), "not authorized");
     DAOContract::set_deposit(env, deposit_params);
+    assert!(false);
+}
+
+#[no_mangle]
+pub fn certora_unlock_sanity(env: Env, developer: Address, operators: Vec<Address>) {
+    require!(is_auth(env.get_admin().unwrap()), "authorized");
+    DAOContract::unlock(env, developer, operators);
+    satisfy!(true);
+}
+
+#[no_mangle]
+pub fn certora_unlock_must_be_admin(env: Env, developer: Address, operators: Vec<Address>) {
+    require!(!is_auth(env.get_admin().unwrap()), "not authorized");
+    DAOContract::unlock(env, developer, operators);
     assert!(false);
 }
