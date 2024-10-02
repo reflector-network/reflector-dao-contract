@@ -320,15 +320,12 @@ impl DAOContract {
             _ => e.panic_with_error(Error::BallotClosed),
         };
         // burn tokens from the deposit according to the decision
-        token(&e).burn(&e.current_contract_address(), &burn_amount);        
-
-        /* MUNGED away for perf, for now:
+        token(&e).burn(&e.current_contract_address(), &burn_amount);
         // update current DAO balance
         update_dao_balance(&e, &(-burn_amount));
         // update ballot status
         ballot.status = new_status;
         e.set_ballot(ballot_id, &ballot);
-        */
     }
 }
 
