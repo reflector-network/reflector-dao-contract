@@ -5,7 +5,6 @@ use types::{
     ballot::Ballot, ballot_category::BallotCategory, ballot_init_params::BallotInitParams,
     ballot_status::BallotStatus, contract_config::ContractConfig, error::Error,
 };
-use nondet::*;
 
 mod extensions;
 mod types;
@@ -112,7 +111,7 @@ impl DAOContract {
         // calculate unlocked amount that goes to operators
         let operators_unlocked = calc_percentage(dao_balance, OPERATORS_SHARE);
         // the amount a single operator would get
-        let unlock_per_operator = &i128::nondet();//MUNGED &(operators_unlocked / operators.len() as i128);
+        let unlock_per_operator = &(operators_unlocked / operators.len() as i128);
         // update available balances for every operator
         for operator in operators.iter() {
             // increase outstanding available balance
@@ -265,14 +264,14 @@ impl DAOContract {
         // calculate the refund amount based on the ballot status
         let refunded = match ballot.status {
             // if the proposal has been rejected by the DAO, the initiator receives 75% refund
-            BallotStatus::Rejected => i128::nondet(),//MUNGED (ballot.deposit * 75) / 100,
+            BallotStatus::Rejected => (ballot.deposit * 75) / 100,
             // if the DAO members haven't voted in a timely manner, the initiator receives extra 25% of the deposit
             BallotStatus::Draft => {
                 // draft ballots can be retracted only after the voting period is over
                 if e.ledger().timestamp() - ballot.created < BALLOT_DURATION as u64 {
                     e.panic_with_error(Error::RefundUnavailable);
                 }
-                i128::nondet()//MUNGED (ballot.deposit * 125) / 100
+                (ballot.deposit * 125) / 100
             }
             _ => e.panic_with_error(Error::RefundUnavailable),
         };
@@ -315,7 +314,7 @@ impl DAOContract {
         };
         // calculate the amount of DAO tokens to burn
         let burn_amount = match new_status {
-            BallotStatus::Rejected => i128::nondet(),//MUNGED (ballot.deposit * 25) / 100,
+            BallotStatus::Rejected => (ballot.deposit * 25) / 100,
             BallotStatus::Accepted => ballot.deposit,
             _ => e.panic_with_error(Error::BallotClosed),
         };
@@ -357,7 +356,7 @@ fn token(e: &Env) -> TokenClient {
 
 // calculate percentage from a given amount
 fn calc_percentage(value: i128, percentage: i128) -> i128 {
-    i128::nondet() //MUNGED (value * percentage) / 10000
+    (value * percentage) / 10000
 }
 
 // update the balance available for claiming for a particular account
