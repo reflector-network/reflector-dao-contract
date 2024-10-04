@@ -1,8 +1,5 @@
 
 wasm := "target/wasm32-unknown-unknown/release/reflector_dao_contract.wasm"
-loop_iter := "4"
-
-trap_as_assert := "false"
 java_args := ""
 
 build:
@@ -15,11 +12,11 @@ wat: build
 clean:
     cargo clean
 
-prove target: build
+prove target loop_iter="4": build
     certoraRun.py \
         {{wasm}} \
         --loop_iter {{loop_iter}} \
-        --prover_args "-target {{target}} -trapAsAssert {{trap_as_assert}} -splitParallel true" \
+        --prover_args "-target {{target}}" \
         --java_args "{{java_args}}"
 
 prove_all: \
