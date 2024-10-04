@@ -1,4 +1,4 @@
-use soroban_sdk::{Env, Map, Address, Vec, String, contracttype};
+use soroban_sdk::{Env, Map, Address, Vec};
 use crate::extensions::env_extensions::EnvExtensions;
 use crate::{DAOContract, BallotStatus};
 use crate::types::{
