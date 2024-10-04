@@ -1,6 +1,6 @@
-use soroban_sdk::{Env, Map, Address, Vec};
+use soroban_sdk::{Env, Map, Address, Vec, String, contracttype};
 use crate::extensions::env_extensions::EnvExtensions;
-use crate::DAOContract;
+use crate::{DAOContract, BallotStatus};
 use crate::types::{
     ballot_category::BallotCategory, ballot_init_params::BallotInitParams, contract_config::ContractConfig
 };
@@ -39,10 +39,13 @@ pub fn certora_create_ballot_must_be_initiator(env: Env, params: BallotInitParam
 }
 
 #[no_mangle]
-pub fn certora_ballot_id_increasing(env: Env, params: BallotInitParams) {
-    let ballot_id = DAOContract::create_ballot(env.clone(), params.clone());
-    let ballot_id2 = DAOContract::create_ballot(env.clone(), params.clone());
-    assert!(ballot_id2 > ballot_id);
+pub fn certora_ballot_id_increasing(env: Env, params: BallotInitParams) {    
+    let before = env.get_last_ballot_id();
+    require!(before < 0xffffffff_ffffffff, "ballot_id can't overflow");
+    let id = DAOContract::create_ballot(env.clone(), params.clone());
+    let after = env.get_last_ballot_id();
+    assert!(after == id);
+    assert!(after == before + 1);
 }
 
 #[no_mangle]
@@ -115,4 +118,40 @@ pub fn certora_unlock_must_be_admin(env: Env, developer: Address, operators: Vec
     require!(!is_auth(env.get_admin().unwrap()), "not authorized");
     DAOContract::unlock(env, developer, operators);
     assert!(false);
+}
+
+
+#[no_mangle]
+pub fn certora_retracted_ballot_cannot_be_retracted(e: Env, ballot_id: u64) {
+    require!(DAOContract::get_ballot(e.clone(), ballot_id).status == BallotStatus::Retracted, "ballot retracted");
+    DAOContract::retract_ballot(e.clone(), ballot_id);
+    assert!(false);
+}
+
+#[no_mangle]
+pub fn certora_accepted_ballot_cannot_be_retracted(e: Env, ballot_id: u64) {
+    require!(DAOContract::get_ballot(e.clone(), ballot_id).status == BallotStatus::Accepted, "ballot accepted");
+    DAOContract::retract_ballot(e.clone(), ballot_id);
+    assert!(false);
+}
+
+#[no_mangle]
+pub fn certora_retracted_ballot_cannot_be_voted(e: Env, ballot_id: u64, accepted: bool) {
+    require!(DAOContract::get_ballot(e.clone(), ballot_id).status == BallotStatus::Retracted, "ballot retracted");
+    DAOContract::vote(e.clone(), ballot_id, accepted);
+    assert!(false);
+}
+
+#[no_mangle]
+pub fn certora_accepted_ballot_cannot_be_voted(e: Env, ballot_id: u64, accepted: bool) {
+    require!(DAOContract::get_ballot(e.clone(), ballot_id).status == BallotStatus::Accepted, "ballot accepted");
+    DAOContract::vote(e.clone(), ballot_id, accepted);
+    assert!(false);
+}
+
+#[no_mangle]
+pub fn certora_voted_ballot_was_draft(e: Env, ballot_id: u64, accepted: bool) {
+    let before = e.get_ballot(ballot_id).unwrap();
+    DAOContract::vote(e.clone(), ballot_id, accepted);
+    assert!(before.status == BallotStatus::Draft);
 }
