@@ -34,7 +34,7 @@ pub fn certora_create_ballot_sanity(env: Env, params: BallotInitParams) {
 pub fn certora_create_ballot_must_be_initiator(env: Env, params: BallotInitParams) {    
     require!(!is_auth(params.initiator.clone()), "not authorized");
     DAOContract::create_ballot(env, params);
-    // create_ballot should have failed because the initiator is not authorized
+    // create_ballot should have failed because the initiator did not authorize
     assert!(false)
 }
 
