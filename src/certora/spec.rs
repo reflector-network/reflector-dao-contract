@@ -1,6 +1,6 @@
 use soroban_sdk::{Env, Map, Address, Vec};
 use crate::extensions::env_extensions::EnvExtensions;
-use crate::{DAOContract, BallotStatus};
+use crate::{DAOContract, BallotStatus, get_ballot};
 use crate::types::{
     ballot_category::BallotCategory, ballot_init_params::BallotInitParams, contract_config::ContractConfig
 };
@@ -66,16 +66,19 @@ pub fn certora_retract_ballot_must_be_initiator(env: Env, ballot_id: u64) {
 }
 
 #[no_mangle]
-pub fn certora_retract_ballot_can_only_be_called_once(env: Env, ballot_id: u64) {
-    DAOContract::retract_ballot(env.clone(), ballot_id);
-    DAOContract::retract_ballot(env.clone(), ballot_id);
-    assert!(false);
+pub fn certora_retract_ballot_can_only_be_called_once(e: Env, ballot_id: u64) {
+    let before = get_ballot(&e, ballot_id).status;
+    DAOContract::retract_ballot(e.clone(), ballot_id);
+    let after = get_ballot(&e, ballot_id).status;
+    assert!(before != BallotStatus::Retracted);
+    assert!(after == BallotStatus::Retracted);
 }
 
 #[no_mangle]
-pub fn certora_vote_sanity(env: Env, ballot_id: u64, accepted: bool) {
-    require!(is_auth(env.get_admin().unwrap()), "authorized");
-    DAOContract::vote(env, ballot_id, accepted);
+pub fn certora_vote_sanity(e: Env, ballot_id: u64, accepted: bool) {
+    require!(is_auth(e.get_admin().unwrap()), "authorized");
+    require!(get_ballot(&e, ballot_id).status != BallotStatus::Retracted, "not retracted");
+    DAOContract::vote(e, ballot_id, accepted);
     satisfy!(true);
 }
 
@@ -87,9 +90,9 @@ pub fn certora_vote_must_be_admin(env: Env, ballot_id: u64, accepted: bool) {
 }
 
 #[no_mangle]
-pub fn certora_cannot_vote_on_retracted_ballot(env: Env, ballot_id: u64, accepted: bool) {
-    DAOContract::retract_ballot(env.clone(), ballot_id);
-    DAOContract::vote(env, ballot_id, accepted);
+pub fn certora_cannot_vote_on_retracted_ballot(e: Env, ballot_id: u64, accepted: bool) {
+    require!(get_ballot(&e, ballot_id).status == BallotStatus::Retracted, "retracted");
+    DAOContract::vote(e, ballot_id, accepted);
     assert!(false);
 }
 
