@@ -41,10 +41,11 @@ pub fn certora_create_ballot_must_be_initiator(env: Env, params: BallotInitParam
 #[no_mangle]
 pub fn certora_ballot_id_increasing(env: Env, params: BallotInitParams) {    
     let before = env.get_last_ballot_id();
-    require!(before < 0xffffffff_ffffffff, "ballot_id can't overflow");
+    require!(before < u64::MAX, "ballot_id can't overflow");
     let id = DAOContract::create_ballot(env.clone(), params.clone());
     let after = env.get_last_ballot_id();
     assert!(after == id);
+    // Check that the ballot_id is increasing, and that it's increasing *slowly*, so it can't overflow the 64-bit int.
     assert!(after == before + 1);
 }
 
