@@ -16,6 +16,7 @@ prove target loop_iter="4": build
     certoraRun.py \
         {{wasm}} \
         --loop_iter {{loop_iter}} \
+        --precise_bitwise_ops \
         --prover_args "-target {{target}}" \
         --java_args "{{java_args}}"
 
@@ -30,7 +31,6 @@ prove_all: \
     (prove "certora_retract_ballot_can_only_be_called_once") \
     (prove "certora_vote_sanity") \
     (prove "certora_vote_must_be_admin") \
-    (prove "certora_cannot_vote_on_retracted_ballot") \
     (prove "certora_set_deposit_sanity") \
     (prove "certora_set_deposit_must_be_admin") \
     (prove "certora_unlock_sanity") \
@@ -39,3 +39,4 @@ prove_all: \
     (prove "certora_retracted_ballot_cannot_be_voted") \
     (prove "certora_accepted_ballot_cannot_be_voted") \
     (prove "certora_voted_ballot_was_draft") \
+    (prove "certora_retracted_ballot_was_draft_or_rejected") \

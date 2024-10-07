@@ -152,3 +152,10 @@ pub fn certora_voted_ballot_was_draft(e: Env, ballot_id: u64, accepted: bool) {
     DAOContract::vote(e.clone(), ballot_id, accepted);
     assert!(before.status == BallotStatus::Draft);
 }
+
+#[no_mangle]
+pub fn certora_retracted_ballot_was_draft_or_rejected(e: Env, ballot_id: u64) {
+    let before = e.get_ballot(ballot_id).unwrap();
+    DAOContract::retract_ballot(e.clone(), ballot_id);
+    assert!(before.status == BallotStatus::Draft || before.status == BallotStatus::Rejected);
+}
