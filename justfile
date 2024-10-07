@@ -16,9 +16,9 @@ prove target loop_iter="4": build
     certoraRun.py \
         {{wasm}} \
         --loop_iter {{loop_iter}} \
-        --precise_bitwise_ops \
         --prover_args "-target {{target}}" \
         --java_args "{{java_args}}"
+#        --precise_bitwise_ops \
 
 prove_all: \
     (prove "certora_config_sanity") \
@@ -39,4 +39,5 @@ prove_all: \
     (prove "certora_retracted_ballot_cannot_be_voted") \
     (prove "certora_accepted_ballot_cannot_be_voted") \
     (prove "certora_voted_ballot_was_draft") \
-    (prove "certora_retracted_ballot_was_draft_or_rejected") \
+# Needs BV mode, which is currently broken
+#    (prove "certora_retracted_ballot_was_draft_or_rejected") \
