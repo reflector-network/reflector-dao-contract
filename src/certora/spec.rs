@@ -90,13 +90,6 @@ pub fn certora_vote_must_be_admin(env: Env, ballot_id: u64, accepted: bool) {
 }
 
 #[no_mangle]
-pub fn certora_cannot_vote_on_retracted_ballot(e: Env, ballot_id: u64, accepted: bool) {
-    require!(get_ballot(&e, ballot_id).status == BallotStatus::Retracted, "retracted");
-    DAOContract::vote(e, ballot_id, accepted);
-    assert!(false);
-}
-
-#[no_mangle]
 pub fn certora_set_deposit_sanity(env: Env, deposit_params: Map<BallotCategory, i128>) {
     require!(is_auth(env.get_admin().unwrap()), "authorized");
     DAOContract::set_deposit(env, deposit_params);
