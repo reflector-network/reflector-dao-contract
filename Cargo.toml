@@ -19,6 +19,7 @@ lto = true
 soroban-sdk = "21.6.0"
 cvt = {git = "https://github.com/Certora/solana-cvt.git", branch="dev-soroban"}
 cvt-soroban = {git = "https://github.com/Certora/solana-cvt.git", branch="dev-soroban"}
+cvt-soroban-macros = {git = "https://github.com/Certora/solana-cvt.git", branch="dev-soroban"}
 nondet = {git = "https://github.com/Certora/solana-cvt.git", branch="dev-soroban", default-features=false, features=["soroban"]}
 
 [dev-dependencies]

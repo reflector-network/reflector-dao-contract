@@ -247,7 +247,7 @@ dependencies = [
 [[package]]
 name = "cvt"
 version = "0.1.0"
-source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#551394866147fab7e111be0ab2959c1a7fd5d3ca"
+source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#3851ae894364e1243e1d8b314dff0e78777ca3bf"
 dependencies = [
  "stubs",
 ]
@@ -255,9 +255,23 @@ dependencies = [
 [[package]]
 name = "cvt-soroban"
 version = "0.1.0"
-source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#551394866147fab7e111be0ab2959c1a7fd5d3ca"
+source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#3851ae894364e1243e1d8b314dff0e78777ca3bf"
 dependencies = [
  "soroban-sdk",
+]
+
+[[package]]
+name = "cvt-soroban-macros"
+version = "0.1.0"
+source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#3851ae894364e1243e1d8b314dff0e78777ca3bf"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "soroban-sdk",
+ "soroban-sdk-macros",
+ "syn",
+ "uuid",
 ]
 
 [[package]]
@@ -597,9 +611,9 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 
 [[package]]
 name = "js-sys"
-version = "0.3.70"
+version = "0.3.71"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1868808506b929d7b0cfa8f75951347aa71bb21144b7791bae35d9bccfcfe37a"
+checksum = "0cb94a0ffd3f3ee755c20f7d8752f45cac88605a4dcf808abcff72873296ec7b"
 dependencies = [
  "wasm-bindgen",
 ]
@@ -661,7 +675,7 @@ dependencies = [
 [[package]]
 name = "nondet"
 version = "0.2.0"
-source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#551394866147fab7e111be0ab2959c1a7fd5d3ca"
+source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#3851ae894364e1243e1d8b314dff0e78777ca3bf"
 dependencies = [
  "cvt",
  "soroban-sdk",
@@ -792,9 +806,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.86"
+version = "1.0.87"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77"
+checksum = "b3e4daa0dcf6feba26f985457cdf104d4b4256fc5a09547140f3631bb076b19a"
 dependencies = [
  "unicode-ident",
 ]
@@ -844,6 +858,7 @@ version = "0.2.0"
 dependencies = [
  "cvt",
  "cvt-soroban",
+ "cvt-soroban-macros",
  "nondet",
  "soroban-sdk",
 ]
@@ -1094,9 +1109,9 @@ dependencies = [
 
 [[package]]
 name = "soroban-ledger-snapshot"
-version = "21.7.3"
+version = "21.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84589856911dfd6731695c9b51c858aed6d4540118c0a1e5c4c858ea13bc744c"
+checksum = "956476365ff3f9bf429ff23fa11ac75798347a2bfc3c9e5e12638dbe3a6b17a8"
 dependencies = [
  "serde",
  "serde_json",
@@ -1108,9 +1123,9 @@ dependencies = [
 
 [[package]]
 name = "soroban-sdk"
-version = "21.7.3"
+version = "21.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3b888f866ce621257311dd779ea49280ce29faa5ee37f22270ba7c32a8fe25d"
+checksum = "c7767472f00a4053e86d5c37b3c814a6bc01c9230004713328d73d2a3444e72e"
 dependencies = [
  "arbitrary",
  "bytes-lit",
@@ -1128,9 +1143,9 @@ dependencies = [
 
 [[package]]
 name = "soroban-sdk-macros"
-version = "21.7.3"
+version = "21.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63c2173f1aacd56b4405eed71cb2a9694dff99d51ba72d4f0cbc5e4961fdabf4"
+checksum = "be8cf8fa10f3ad62509ff7b25cd696fb837da692c40264d1abb393e117aad75c"
 dependencies = [
  "crate-git-revision",
  "darling",
@@ -1148,9 +1163,9 @@ dependencies = [
 
 [[package]]
 name = "soroban-spec"
-version = "21.7.3"
+version = "21.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7705bffbcc747c08e81698b87b4a787f8b268c25d88f777160091dc1ee8121cb"
+checksum = "12d306f61ef5c1247dca1562e04cc74b6e3adf107631c168b2ce0d5f1cf1fa13"
 dependencies = [
  "base64 0.13.1",
  "stellar-xdr",
@@ -1160,9 +1175,9 @@ dependencies = [
 
 [[package]]
 name = "soroban-spec-rust"
-version = "21.7.3"
+version = "21.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48207ebc8616c2804a17203d1d86c53c3d3c804b682cbab011a135893db1cf78"
+checksum = "bed06e0f622fb878fc439643f2fd86163223ac33a468beeea96e5d33f79b08b3"
 dependencies = [
  "prettyplease",
  "proc-macro2",
@@ -1245,7 +1260,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 [[package]]
 name = "stubs"
 version = "0.1.0"
-source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#551394866147fab7e111be0ab2959c1a7fd5d3ca"
+source = "git+https://github.com/Certora/solana-cvt.git?branch=dev-soroban#3851ae894364e1243e1d8b314dff0e78777ca3bf"
 
 [[package]]
 name = "subtle"
@@ -1328,6 +1343,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e91b56cd4cadaeb79bbf1a5645f6b4f8dc5bde8834ad5894a8db35fda9efa1fe"
 
 [[package]]
+name = "uuid"
+version = "1.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81dfa00651efa65069b0b6b651f4aaa31ba9e3c3ce0137aaad053604ee7e0314"
+dependencies = [
+ "getrandom",
+]
+
+[[package]]
 name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1341,9 +1365,9 @@ checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.93"
+version = "0.2.94"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a82edfc16a6c469f5f44dc7b571814045d60404b55a0ee849f9bcfa2e63dd9b5"
+checksum = "ef073ced962d62984fb38a36e5fdc1a2b23c9e0e1fa0689bb97afa4202ef6887"
 dependencies = [
  "cfg-if",
  "once_cell",
@@ -1352,9 +1376,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-backend"
-version = "0.2.93"
+version = "0.2.94"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9de396da306523044d3302746f1208fa71d7532227f15e347e2d93e4145dd77b"
+checksum = "c4bfab14ef75323f4eb75fa52ee0a3fb59611977fd3240da19b2cf36ff85030e"
 dependencies = [
  "bumpalo",
  "log",
@@ -1367,9 +1391,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.93"
+version = "0.2.94"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "585c4c91a46b072c92e908d99cb1dcdf95c5218eeb6f3bf1efa991ee7a68cccf"
+checksum = "a7bec9830f60924d9ceb3ef99d55c155be8afa76954edffbb5936ff4509474e7"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -1377,9 +1401,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.93"
+version = "0.2.94"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afc340c74d9005395cf9dd098506f7f44e38f2b4a21c6aaacf9a105ea5e1e836"
+checksum = "4c74f6e152a76a2ad448e223b0fc0b6b5747649c3d769cc6bf45737bf97d0ed6"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1390,9 +1414,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.93"
+version = "0.2.94"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c62a0a307cb4a311d3a07867860911ca130c3494e8c2719593806c08bc5d0484"
+checksum = "a42f6c679374623f295a8623adfe63d9284091245c3504bde47c17a3ce2777d9"
 
 [[package]]
 name = "wasmi_arena"
