@@ -186,6 +186,48 @@ pub fn certora_invariant_balances_not_negative_set_deposit(e: Env, claimant: Add
 #[rule]
 pub fn certora_invariant_balances_not_negative_unlock(e: Env, claimant: Address, developer: Address, operators: Vec<Address>) {    
     invariant_balances_not_negative(&e, &claimant, || {
-            DAOContract::unlock(e.clone(), developer, operators);
+        DAOContract::unlock(e.clone(), developer, operators);
+    });
+}
+
+#[rule]
+pub fn certora_invariant_balances_not_negative_available(e: Env, claimant: Address) {
+    invariant_balances_not_negative(&e, &claimant, || {
+        DAOContract::available(e.clone(), claimant.clone());
+    });
+}
+
+#[rule]
+pub fn certora_invariant_balances_not_negative_claim(e: Env, claimant: Address, to: Address, amount: i128) {
+    invariant_balances_not_negative(&e, &claimant, || {
+        DAOContract::claim(e.clone(), claimant.clone(), to, amount);
+    });
+}
+
+#[rule]
+pub fn certora_invariant_balances_not_negative_create_ballot(e: Env, claimant: Address, params: BallotInitParams) {
+    invariant_balances_not_negative(&e, &claimant, || {
+        DAOContract::create_ballot(e.clone(), params);
+    });
+}
+
+#[rule]
+pub fn certora_invariant_balances_not_negative_get_ballot(e: Env, claimant: Address, ballot_id: u64) {
+    invariant_balances_not_negative(&e, &claimant, || {
+        DAOContract::get_ballot(e.clone(), ballot_id);
+    });
+}
+
+#[rule]
+pub fn certora_invariant_balances_not_negative_retract_ballot(e: Env, claimant: Address, ballot_id: u64) {
+    invariant_balances_not_negative(&e, &claimant, || {
+        DAOContract::retract_ballot(e.clone(), ballot_id);
+    });
+}
+
+#[rule]
+pub fn certora_invariant_balances_not_negative_vote(e: Env, claimant: Address, ballot_id: u64, accepted: bool) {
+    invariant_balances_not_negative(&e, &claimant, || {
+        DAOContract::vote(e.clone(), ballot_id, accepted);
     });
 }

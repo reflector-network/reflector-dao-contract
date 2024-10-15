@@ -2,7 +2,7 @@
 wasm := "target/wasm32-unknown-unknown/release/reflector_dao_contract.wasm"
 java_args := ""
 loop_iter := "4" 
-precise_bitwise_ops := "false" 
+precise_bitwise_ops := "true" 
 optimistic_loop := "true"
 
 build:
