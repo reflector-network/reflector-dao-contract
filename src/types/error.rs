@@ -14,6 +14,10 @@ pub enum Error {
     InvalidAmount = 3,
     /// Invalid ballot create parameters
     InvalidBallotParams = 4,
+    /// Overflow occurred during the operation
+    Overflow = 5,
+    /// Operators param is invalid
+    InvalidOperators = 6,
     /// Last unlock process has been executed less than a week ago
     UnlockUnavailable = 10,
     /// Proposal has been created less than two weeks ago and refund is not available yet, or the ballot has been closed
