@@ -141,6 +141,7 @@ impl DAOContract {
         e.events().publish(
             (
                 REFLECTOR,
+                symbol_short!("dao"),
                 symbol_short!("unlocked")
             ),
             ()
@@ -246,6 +247,7 @@ impl DAOContract {
         e.events().publish(
             (
                 REFLECTOR,
+                symbol_short!("dao"),
                 symbol_short!("ballot")
             ),
             ballot
@@ -315,6 +317,7 @@ impl DAOContract {
         e.events().publish(
             (
                 REFLECTOR,
+                symbol_short!("dao"),
                 symbol_short!("retracted")
             ),
             ballot_id
@@ -368,6 +371,7 @@ impl DAOContract {
         e.events().publish(
             (
                 REFLECTOR,
+                symbol_short!("dao"),
                 symbol_short!("voted")
             ),
             (ballot_id, accepted)
@@ -388,7 +392,8 @@ fn set_deposit(e: &Env, deposit_params: Map<BallotCategory, i128>) {
     e.events().publish(
         (
             REFLECTOR,
-            symbol_short!("updated")
+            symbol_short!("dao"),
+            symbol_short!("configed")
         ),
         deposit_params,
     );
