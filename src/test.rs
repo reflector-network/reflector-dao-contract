@@ -15,7 +15,7 @@ fn init_contract_with_admin<'a>() -> (Env, DAOContractClient<'a>, ContractConfig
     let contract_id = env.register_contract(None, DAOContract);
     let client: DAOContractClient<'a> = DAOContractClient::new(&env, &contract_id);
 
-    let token = env.register_stellar_asset_contract(admin.clone());
+    let token = env.register_stellar_asset_contract_v2(admin.clone()).address();
 
     env.mock_all_auths();
 
