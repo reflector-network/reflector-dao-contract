@@ -1,6 +1,6 @@
 #![no_std]
 use extensions::env_extensions::EnvExtensions;
-use soroban_sdk::{contract, contractimpl, token::TokenClient, Address, Env, Map, Vec};
+use soroban_sdk::{contract, contractimpl, symbol_short, token::TokenClient, Address, Env, Map, Symbol, Vec};
 use types::{
     ballot::Ballot, ballot_category::BallotCategory, ballot_init_params::BallotInitParams,
     ballot_status::BallotStatus, contract_config::ContractConfig, error::Error,
@@ -9,10 +9,13 @@ use types::{
 mod extensions;
 mod types;
 
-// 0.24% weekly distribution
+//10000 is 100%
+const PERCENTAGE_FACTOR: i128 = 10000;
+
+// 0.24% weekly distribution, 10000 is 100%
 const OPERATORS_SHARE: i128 = 24;
 
-// 0.06% weekly distribution
+// 0.06% weekly distribution, 10000 is 100%
 const DEVELOPERS_SHARE: i128 = 6;
 
 // 1 week
@@ -23,6 +26,8 @@ const BALLOT_DURATION: u32 = 604800 * 2;
 
 // 2 months
 const BALLOT_RENTAL_PERIOD: u32 = 17280 * 30 * 2;
+
+const REFLECTOR: Symbol = symbol_short!("reflector");
 
 #[contract]
 pub struct DAOContract;
@@ -56,23 +61,23 @@ impl DAOContract {
         e.set_admin(&config.admin);
         e.set_token(&config.token);
         e.set_last_unlock(config.start_date);
-        //set deposit params
-        set_deposit(&e, config.deposit_params);
         // transfer tokens to the DAO contract
         token(&e).transfer(&config.admin, &e.current_contract_address(), &config.amount);
         // set initial DAO balance
-        update_dao_balance(&e, &config.amount.into());
+        update_dao_balance(&e, config.amount.into());
+        //set deposit params
+        set_deposit(&e, config.deposit_params);
     }
 
     /// Sets the deposit amount for each ballot category
     /// Requires admin permissions
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `deposit_params` - Map of deposit amounts for each ballot category
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the caller doesn't match admin address
     /// Panics if the deposit amount is invalid
     /// Panics if the deposit amount is not set for all categories
@@ -103,29 +108,44 @@ impl DAOContract {
         if now - last_unlock < UNLOCK_PERIOD as u64 {
             e.panic_with_error(Error::UnlockUnavailable);
         }
+        // check if the operators list is empty or not unique
+        if operators.is_empty() ||
+            operators.iter().any(|x| operators.iter().filter(|y| x == *y).count() > 1) {
+            e.panic_with_error(Error::InvalidOperators);
+        }
         // fetch the remaining DAO balance
         let dao_balance = e.get_dao_balance();
         // actual unlocked amount can be different from the calculated percentage due to rounding errors
         let mut total_unlocked = 0i128;
         // calculate unlocked amount that goes to operators
-        let operators_unlocked = calc_percentage(dao_balance, OPERATORS_SHARE);
+        let operators_unlocked = calc_share(&e, dao_balance, OPERATORS_SHARE);
         // the amount a single operator would get
-        let unlock_per_operator = &(operators_unlocked / operators.len() as i128);
+        let unlock_per_operator = operators_unlocked / operators.len() as i128;
         // update available balances for every operator
         for operator in operators.iter() {
             // increase outstanding available balance
             update_available_balance(&e, &operator, unlock_per_operator);
-            total_unlocked += unlock_per_operator;
+            total_unlocked = sum(&e, total_unlocked, unlock_per_operator);
         }
         // get developer unlocked amount
-        let developer_unlocked = &calc_percentage(dao_balance, DEVELOPERS_SHARE);
+        let developer_unlocked = calc_share(&e, dao_balance, DEVELOPERS_SHARE);
         // increase outstanding developer available balance
         update_available_balance(&e, &developer, developer_unlocked);
-        total_unlocked += developer_unlocked;
+        total_unlocked = sum(&e, total_unlocked, developer_unlocked);
         // add week to last unlock date
         e.set_last_unlock(last_unlock + UNLOCK_PERIOD as u64);
         // update dao balance
         e.set_dao_balance(dao_balance - total_unlocked);
+
+        // publish unlock event
+        e.events().publish(
+            (
+                REFLECTOR,
+                symbol_short!("dao"),
+                symbol_short!("unlocked")
+            ),
+            ()
+        );
     }
 
     /// Fetches the DAO tokens amount available for claiming
@@ -173,7 +193,7 @@ impl DAOContract {
         token(&e).transfer(&e.current_contract_address(), &to, &amount);
 
         // update available balance
-        update_available_balance(&e, &claimant, &(-amount));
+        update_available_balance(&e, &claimant, -amount);
     }
 
     /// Create a new ballot
@@ -215,13 +235,24 @@ impl DAOContract {
         // transfer deposit to DAO fund
         token(&e).transfer(&ballot.initiator, &e.current_contract_address(), &deposit);
         // update internal DAO balance
-        update_dao_balance(&e, &deposit);
+        update_dao_balance(&e, deposit);
         // save ballot
         e.set_ballot(ballot_id, &ballot);
         // extend ballot TTL
         e.extend_ballot_ttl(ballot_id, e.ledger().sequence() + BALLOT_RENTAL_PERIOD);
         // update ID counter
         e.set_last_ballot_id(ballot_id);
+
+        // publish ballot event
+        e.events().publish(
+            (
+                REFLECTOR,
+                symbol_short!("dao"),
+                symbol_short!("ballot")
+            ),
+            ballot
+        );
+
         // return created ballot ID
         ballot_id
     }
@@ -263,24 +294,35 @@ impl DAOContract {
         // calculate the refund amount based on the ballot status
         let refunded = match ballot.status {
             // if the proposal has been rejected by the DAO, the initiator receives 75% refund
-            BallotStatus::Rejected => (ballot.deposit * 75) / 100,
+            BallotStatus::Rejected => get_value_percentage(&e, ballot.deposit, 75),
             // if the DAO members haven't voted in a timely manner, the initiator receives extra 25% of the deposit
             BallotStatus::Draft => {
                 // draft ballots can be retracted only after the voting period is over
                 if e.ledger().timestamp() - ballot.created < BALLOT_DURATION as u64 {
                     e.panic_with_error(Error::RefundUnavailable);
                 }
-                (ballot.deposit * 125) / 100
+                get_value_percentage(&e, ballot.deposit, 125)
             }
             _ => e.panic_with_error(Error::RefundUnavailable),
         };
         // refund tokens to the initiator address
         token(&e).transfer(&e.current_contract_address(), &ballot.initiator, &refunded);
         // update remaining DAO balance
-        update_dao_balance(&e, &(-refunded));
+        update_dao_balance(&e, -refunded);
         // update ballot status
         ballot.status = BallotStatus::Retracted;
         e.set_ballot(ballot_id, &ballot);
+
+        // publish retracted event
+        e.events().publish(
+            (
+                REFLECTOR,
+                symbol_short!("dao"),
+                symbol_short!("retracted")
+            ),
+            ballot_id
+        );
+
     }
 
     /// Set ballot decision based on the operators voting (decision requires the majority of signatures)
@@ -313,17 +355,27 @@ impl DAOContract {
         };
         // calculate the amount of DAO tokens to burn
         let burn_amount = match new_status {
-            BallotStatus::Rejected => (ballot.deposit * 25) / 100,
+            BallotStatus::Rejected => get_value_percentage(&e, ballot.deposit, 25),
             BallotStatus::Accepted => ballot.deposit,
             _ => e.panic_with_error(Error::BallotClosed),
         };
         // burn tokens from the deposit according to the decision
         token(&e).burn(&e.current_contract_address(), &burn_amount);
         // update current DAO balance
-        update_dao_balance(&e, &(-burn_amount));
+        update_dao_balance(&e, -burn_amount);
         // update ballot status
         ballot.status = new_status;
         e.set_ballot(ballot_id, &ballot);
+
+        // publish voted event
+        e.events().publish(
+            (
+                REFLECTOR,
+                symbol_short!("dao"),
+                symbol_short!("voted")
+            ),
+            (ballot_id, accepted)
+        );
     }
 }
 
@@ -335,6 +387,16 @@ fn set_deposit(e: &Env, deposit_params: Map<BallotCategory, i128>) {
         }
         e.set_deposit(category, amount);
     }
+    
+    // publish updated event
+    e.events().publish(
+        (
+            REFLECTOR,
+            symbol_short!("dao"),
+            symbol_short!("configed")
+        ),
+        deposit_params,
+    );
 }
 
 // fetch ballot from the persistent storage
@@ -354,20 +416,52 @@ fn token(e: &Env) -> TokenClient {
 }
 
 // calculate percentage from a given amount
-fn calc_percentage(value: i128, percentage: i128) -> i128 {
-    (value * percentage) / 10000
+fn calc_share(e: &Env, value: i128, percentage: i128) -> i128 {
+    div(e, mul(e, value, percentage), PERCENTAGE_FACTOR)
 }
 
 // update the balance available for claiming for a particular account
-fn update_available_balance(e: &Env, address: &Address, amount: &i128) {
+fn update_available_balance(e: &Env, address: &Address, amount: i128) {
     let balance = e.get_available_balance(address);
-    e.set_available_balance(address, balance + amount);
+    e.set_available_balance(address, sum(&e, balance, amount));
 }
 
 // update the remaining DAO balance
-fn update_dao_balance(e: &Env, amount: &i128) {
+fn update_dao_balance(e: &Env, amount: i128) {
     let dao_balance = e.get_dao_balance();
-    e.set_dao_balance(dao_balance + amount);
+    e.set_dao_balance(sum(&e, dao_balance, amount));
+}
+
+// calculate the percentage of a given value with overflow check
+fn get_value_percentage(e: &Env, value: i128, percentage: i128) -> i128 {
+    div(e, mul(e, value, percentage),100)
+}
+
+// addition with overflow check
+fn sum(e: &Env, a: i128, b: i128) -> i128 {
+    let sum = a.checked_add(b);
+    if sum.is_none() {
+        e.panic_with_error(Error::Overflow);
+    }
+    sum.unwrap()
+}
+
+// division with overflow check
+fn div(e: &Env, a: i128, b: i128) -> i128 {
+    let result = a.checked_div(b);
+    if result.is_none() {
+        e.panic_with_error(Error::Overflow);
+    }
+    result.unwrap()
+}
+
+// multiplication with overflow check
+fn mul(e: &Env, a: i128, b: i128) -> i128 {
+    let result = a.checked_mul(b);
+    if result.is_none() {
+        e.panic_with_error(Error::Overflow);
+    }
+    result.unwrap()
 }
 
 mod test;

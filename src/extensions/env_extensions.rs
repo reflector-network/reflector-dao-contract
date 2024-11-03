@@ -24,7 +24,7 @@ pub trait EnvExtensions {
 
     fn set_last_ballot_id(&self, last_ballot_id: u64);
 
-    fn set_last_unlock(&self, last_uplock: u64);
+    fn set_last_unlock(&self, last_unlock: u64);
 
     fn get_last_unlock(&self) -> u64;
 
