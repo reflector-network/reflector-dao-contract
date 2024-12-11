@@ -12,11 +12,11 @@ mod types;
 //10000 is 100%
 const PERCENTAGE_FACTOR: i128 = 10000;
 
-// 0.24% weekly distribution, 10000 is 100%
-const OPERATORS_SHARE: i128 = 24;
+// 0.12% weekly distribution, 10000 is 100%
+const OPERATORS_SHARE: i128 = 12;
 
-// 0.06% weekly distribution, 10000 is 100%
-const DEVELOPERS_SHARE: i128 = 6;
+// 0.03% weekly distribution, 10000 is 100%
+const DEVELOPERS_SHARE: i128 = 3;
 
 // 1 week
 const UNLOCK_PERIOD: u32 = 604800;

@@ -12,7 +12,7 @@ fn init_contract_with_admin<'a>() -> (Env, DAOContractClient<'a>, ContractConfig
 
     let admin = Address::generate(&env);
 
-    let contract_id = env.register_contract(None, DAOContract);
+    let contract_id = env.register(DAOContract, ());
     let client: DAOContractClient<'a> = DAOContractClient::new(&env, &contract_id);
 
     let token = env.register_stellar_asset_contract_v2(admin.clone()).address();

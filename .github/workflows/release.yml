@@ -16,5 +16,6 @@ jobs:
     with:
       release_name: ${{ github.ref_name }}
       release_description: 'Release of the DAO contract'
+      home_domain: 'reflector.network'
     secrets:
       release_token: ${{ secrets.GITHUB_TOKEN }}
